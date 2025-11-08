@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRE Lab Frontend</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Simple scrollbar for the log */
+        #log-output::-webkit-scrollbar {
+            width: 8px;
+        }
+        #log-output::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        #log-output::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        #log-output::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <div class="container mx-auto max-w-4xl p-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">SRE Lab - Microservice Traffic Generator</h1>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-lg shadow-xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Controls -->
+            <div class="border-r border-gray-200 pr-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Actions</h2>
+                <div class="flex flex-col space-y-3">
+                    <!-- Get Users -->
+                    <button id="btn-get-users" class="w-full text-left p-3 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        1. Get Users
+                    </button>
+                    
+                    <!-- Get Inventory -->
+                    <button id="btn-get-inventory" class="w-full text-left p-3 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-400">
+                        2. Get Inventory
+                    </button>
+
+                    <!-- Create Order -->
+                    <div class="pt-2">
+                        <label for="item-select" class="block text-sm font-medium text-gray-700">Select Item to Order:</label>
+                        <select id="item-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="item1">Item 1 (Stock: 100)</option>
+                            <option value="item2">Item 2 (Stock: 50)</option>
+                            <option value="item3">Item 3 (Stock: 200)</option>
+                        </select>
+                        <button id="btn-create-order" class="w-full mt-3 p-3 bg-indigo-500 text-white rounded-lg shadow hover:bg-indigo-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            3. Create Order (Qty: 2)
+                        </button>
+                    </div>
+
+                    <button id="btn-clear-log" class="w-full mt-3 p-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400">
+                        Clear Log
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Log Output -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Response Log</h2>
+                <pre id="log-output" class="bg-gray-900 text-white text-sm p-4 rounded-lg shadow-inner h-96 overflow-y-auto font-mono"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gatewayUrl = 'http://localhost:3000';
+        const logOutput = document.getElementById('log-output');
+
+        function log(message, data) {
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'mb-2';
+            
+            let content = `<strong>[${time}] ${message}</strong>`;
+            if (data) {
+                content += `\n${JSON.stringify(data, null, 2)}`;
+            }
+            logEntry.innerHTML = content;
+            
+            // Add color based on message
+            if (message.includes('SUCCESS')) {
+                logEntry.classList.add('text-green-300');
+            } else if (message.includes('ERROR')) {
+                logEntry.classList.add('text-red-300');
+            } else {
+                logEntry.classList.add('text-blue-300');
+            }
+
+            logOutput.appendChild(logEntry);
+            logOutput.scrollTop = logOutput.scrollHeight; // Auto-scroll
+        }
+
+        // --- Event Listeners ---
+
+        document.getElementById('btn-get-users').addEventListener('click', async () => {
+            log('REQUEST: GET /api/users');
+            try {
+                const response = await fetch(`${gatewayUrl}/api/users`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Fetch failed');
+                log('SUCCESS: GET /api/users', data);
+            } catch (error) {
+                log('ERROR: GET /api/users', { error: error.message });
+            }
+        });
+
+        document.getElementById('btn-get-inventory').addEventListener('click', async () => {
+            log('REQUEST: GET /api/inventory');
+            try {
+                const response = await fetch(`${gatewayUrl}/api/inventory`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Fetch failed');
+                log('SUCCESS: GET /api/inventory', data);
+            } catch (error) {
+                log('ERROR: GET /api/inventory', { error: error.message });
+            }
+        });
+
+        document.getElementById('btn-create-order').addEventListener('click', async () => {
+            const selectedItem = document.getElementById('item-select').value;
+            const orderData = {
+                item: selectedItem,
+                quantity: 2
+            };
+
+            log(`REQUEST: POST /api/orders`, orderData);
+            try {
+                const response = await fetch(`${gatewayUrl}/api/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || data.error || 'Order failed');
+                log('SUCCESS: POST /api/orders', data);
+            } catch (error) {
+                log('ERROR: POST /api/orders', { error: error.message });
+            }
+        });
+
+        document.getElementById('btn-clear-log').addEventListener('click', () => {
+            logOutput.innerHTML = '';
+        });
+
+        log('Frontend initialized. Ready to send requests.');
+    </script>
+
+</body>
+</html>
