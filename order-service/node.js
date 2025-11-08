@@ -7,7 +7,7 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
-const INVENTORY_SERVICE_URL = 'http://localhost:3002';
+const INVENTORY_SERVICE_URL = process.env.INVENTORY_SERVICE_URL || 'http://localhost:3002';
 
 app.post('/orders', async (req, res) => {
   const { item, quantity } = req.body;

@@ -2,15 +2,15 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = 8000;
 
 app.use(cors());
 app.use(express.json());
 
 // Define service URLs
-const ORDER_SERVICE_URL = 'http://localhost:3001';
-const INVENTORY_SERVICE_URL = 'http://localhost:3002';
-const USER_SERVICE_URL = 'http://localhost:3003';
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3001';
+const INVENTORY_SERVICE_URL = process.env.INVENTORY_SERVICE_URL || 'http://localhost:3002';
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:3003';
 
 // Simple logging middleware
 app.use((req, res, next) => {
