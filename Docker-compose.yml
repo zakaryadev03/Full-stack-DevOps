@@ -1,0 +1,47 @@
+services:
+  user-service:
+    build: ./user-service
+    networks:
+      - app-network
+
+  order-service:
+    build: ./order-service
+    networks:
+      - app-network
+    environment:
+      - INVENTORY_SERVICE_URL=http://inventory-service:3002
+  
+  inventory-service:
+    build: ./inventory-service
+    networks:
+      - app-network
+  
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+    depends_on:
+      - user-service
+      - order-service
+      - inventory-service
+    environment:
+      - ORDER_SERVICE_URL=http://order-service:3001
+      - INVENTORY_SERVICE_URL=http://inventory-service:3002
+      - USER_SERVICE_URL=http://user-service:3003
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    environment:
+      - GATEWAY_URL=http://localhost:8000
+    depends_on:
+      - api-gateway
+
+networks:
+  app-network:
+    driver: bridge

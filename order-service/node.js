@@ -4,10 +4,45 @@ const cors = require('cors');
 const app = express();
 const port = 3001;
 
+// Import our new metrics tools (from the same folder)
+const { register, createMetricsMiddleware, Counter } = require('./metrics');
+
+// COUNTER for total orders processed
+const ordersTotalCounter = Counter({
+  name: 'orders_total',
+  help: 'Total number of orders processed',
+  labelNames: ['service', 'status'], // Status: 'success', 'failed_stock', 'error'
+});
+
+// COUNTER for total value of orders
+const ordersValueTotalCounter = Counter({
+  name: 'orders_value_total',
+  help: 'Total monetary value of successful orders',
+  labelNames: ['service'],
+});
+
 app.use(cors());
 app.use(express.json());
 
 const INVENTORY_SERVICE_URL = process.env.INVENTORY_SERVICE_URL || 'http://localhost:3002';
+
+// Apply the metrics middleware
+app.use(createMetricsMiddleware('order-service'));
+
+// --- Health Check Endpoint ---
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// --- Metrics Endpoint ---
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (ex) {
+    res.status(500).end(ex);
+  }
+});
 
 app.post('/orders', async (req, res) => {
   const { item, quantity } = req.body;

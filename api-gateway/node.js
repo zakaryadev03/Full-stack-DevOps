@@ -4,13 +4,34 @@ const cors = require('cors');
 const app = express();
 const port = 8000;
 
+// Import our new metrics tools (from the same folder)
+const { register, createMetricsMiddleware } = require('./metrics');
+
 app.use(cors());
 app.use(express.json());
+app.use(createMetricsMiddleware(register));
 
 // Define service URLs
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3001';
 const INVENTORY_SERVICE_URL = process.env.INVENTORY_SERVICE_URL || 'http://localhost:3002';
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:3003';
+
+// --- Health Check Endpoint ---
+app.get('/healthz', (req, res) => {
+  // In a real app, you might check DB connections, etc.
+  res.status(200).send('OK');
+});
+
+// --- Metrics Endpoint ---
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (ex) {
+    res.status(500).end(ex);
+  }
+});
+
 
 // Simple logging middleware
 app.use((req, res, next) => {
