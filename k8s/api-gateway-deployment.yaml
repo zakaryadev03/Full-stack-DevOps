@@ -13,35 +13,48 @@ spec:
       labels:
         app: api-gateway
       annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "3000"
-        prometheus.io/path: "/metrics"
+        prometheus.io/scrape: 'true'
+        prometheus.io/path: '/metrics'
+        # --- FIX #1 ---
+        # Update prometheus port
+        prometheus.io/port: '8000'
     spec:
       containers:
         - name: api-gateway
+          # Make sure this is your correct image
           image: zakaryab2003/fsdevopsapi:latest
+          imagePullPolicy: Always
           ports:
-            - containerPort: 3000
+            # --- FIX #2 ---
+            # Update container port to match the app
+            - containerPort: 8000
           env:
-            # These values point to the *Kubernetes Service names* we just created
             - name: ORDER_SERVICE_URL
               value: "http://order-service-svc.sre-lab:3001"
             - name: INVENTORY_SERVICE_URL
               value: "http://inventory-service-svc.sre-lab:3002"
             - name: USER_SERVICE_URL
               value: "http://user-service-svc.sre-lab:3003"
+          
           livenessProbe:
             httpGet:
               path: /healthz
-              port: 3000
-            initialDelaySeconds: 10
-            periodSeconds: 5
+              # --- FIX #3 ---
+              # Update liveness probe port
+              port: 8000
+            # Give the container 30 seconds to start before liveness check
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          
           readinessProbe:
             httpGet:
               path: /healthz
-              port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 3
+              # --- FIX #4 ---
+              # Update readiness probe port
+              port: 8000
+            # Give the container 15 seconds to be "ready"
+            initialDelaySeconds: 15
+            periodSeconds: 5
           resources:
             requests:
               memory: "128Mi"

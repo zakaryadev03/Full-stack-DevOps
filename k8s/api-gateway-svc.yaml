@@ -8,7 +8,9 @@ spec:
     app: api-gateway
   ports:
     - protocol: TCP
-      port: 3000       # Internal port
-      targetPort: 3000   # Container port
-      nodePort: 30007  # Fixed external port. Must be in 30000-32767 range
-  type: NodePort # This exposes the service outside the Minikube VM
+      port: 3000       # This is fine, this is the Service's internal port
+      # --- FIX #5 ---
+      # This MUST match the container's port
+      targetPort: 8000   
+      nodePort: 30007  
+  type: NodePort
