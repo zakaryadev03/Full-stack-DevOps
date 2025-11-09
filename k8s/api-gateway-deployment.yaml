@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-deploy
+  namespace: sre-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: api-gateway
+          image: zakaryab2003/fsdevopsapi:latest
+          ports:
+            - containerPort: 3000
+          env:
+            # These values point to the *Kubernetes Service names* we just created
+            - name: ORDER_SERVICE_URL
+              value: "http://order-service-svc.sre-lab:3001"
+            - name: INVENTORY_SERVICE_URL
+              value: "http://inventory-service-svc.sre-lab:3002"
+            - name: USER_SERVICE_URL
+              value: "http://user-service-svc.sre-lab:3003"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 3
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"

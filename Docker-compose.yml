@@ -1,23 +1,23 @@
 services:
   user-service:
-    build: ./user-service
+    image: zakaryab2003/fsdevopsuser:latest
     networks:
       - app-network
 
   order-service:
-    build: ./order-service
+    image: zakaryab2003/fsdevopsorder:latest
     networks:
       - app-network
     environment:
       - INVENTORY_SERVICE_URL=http://inventory-service:3002
   
   inventory-service:
-    build: ./inventory-service
+    image: zakaryab2003/fsdevopsinventory:latest  
     networks:
       - app-network
   
   api-gateway:
-    build: ./api-gateway
+    image: zakaryab2003/fsdevopsapi:latest
     ports:
       - "8000:8000"
     networks:
@@ -32,7 +32,7 @@ services:
       - USER_SERVICE_URL=http://user-service:3003
 
   frontend:
-    build: ./frontend
+    image: zakaryab2003/fsdevopsfrontend:latest
     ports:
       - "80:80"
     networks:

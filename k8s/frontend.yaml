@@ -1,0 +1,223 @@
+# -----------------------------------------------------------------
+# ConfigMap: This holds your frontend.html file
+# -----------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-html-cm
+  namespace: sre-lab
+data:
+  # This is your entire HTML file, embedded as a string.
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-R" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>SRE Lab Frontend</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-900 text-gray-100 font-sans p-8">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-cyan-400 mb-6">
+          SRE Microservice Test Client
+        </h1>
+
+        <!-- API Gateway URL Input -->
+        <div class="mb-6 bg-gray-800 p-4 rounded-lg shadow-lg">
+          <label for="gatewayUrl" class="block text-sm font-medium text-gray-300 mb-2"
+            >API Gateway URL:</label
+          >
+          <input
+            type="text"
+            id="gatewayUrl"
+            class="w-full p-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:ring-cyan-500 focus:border-cyan-500"
+            placeholder="e.g., http://192.168.49.2:30007"
+          />
+          <p class="text-xs text-gray-400 mt-2">
+            Get this by running:
+            <code class="bg-gray-900 px-1 py-0.5 rounded"
+              >minikube service api-gateway-svc -n sre-lab --url</code
+            >
+          </p>
+        </div>
+
+        <!-- Service Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Order Service -->
+          <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold text-green-400 mb-4">
+              Order Service
+            </h2>
+            <button
+              id="btnCreateOrder"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+            >
+              Create New Order
+            </button>
+          </div>
+
+          <!-- Inventory Service -->
+          <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold text-blue-400 mb-4">
+              Inventory Service
+            </h2>
+            <button
+              id="btnGetInventory"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+            >
+              Get Inventory
+            </button>
+          </div>
+
+          <!-- User Service -->
+          <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold text-yellow-400 mb-4">
+              User Service
+            </h2>
+            <button
+              id="btnGetUser"
+              class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+            >
+              Get User (ID: 1)
+            </button>
+          </div>
+        </div>
+
+        <!-- Log Output -->
+        <div class="mt-8 bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h2 class="text-xl font-semibold mb-4">Log Output</h2>
+          <pre
+            id="logOutput"
+            class="bg-gray-900 text-sm p-4 rounded-md h-64 overflow-y-auto w-full border border-gray-700"
+          ></pre>
+          <button
+            id="btnClearLog"
+            class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md text-sm transition duration-200"
+          >
+            Clear Log
+          </button>
+        </div>
+      </div>
+
+      <script>
+        const logOutput = document.getElementById("logOutput");
+        const getGatewayUrl = () =>
+          document.getElementById("gatewayUrl").value.trim();
+
+        function log(message, isError = false) {
+          const formattedMessage =
+            typeof message === "object"
+              ? JSON.stringify(message, null, 2)
+              : message;
+          const color = isError ? "text-red-400" : "text-gray-300";
+          logOutput.innerHTML += `<span class="${color}">${formattedMessage}</span>\n\n`;
+          logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        async function apiCall(endpoint) {
+          const baseUrl = getGatewayUrl();
+          if (!baseUrl) {
+            log("Error: API Gateway URL is not set.", true);
+            return;
+          }
+          const url = `${baseUrl}${endpoint}`;
+          log(`Sending request to: ${url}`);
+          try {
+            const response = await fetch(url);
+            const data = await response.json();
+            if (!response.ok) {
+              log(`API Error: ${response.status}`, true);
+              log(data, true);
+            } else {
+              log(`Success: ${response.status}`);
+              log(data);
+            }
+          } catch (error) {
+            log(`Network Error: ${error.message}`, true);
+          }
+        }
+
+        document
+          .getElementById("btnCreateOrder")
+          .addEventListener("click", () =>
+            apiCall("/order?item=item1&quantity=1")
+          );
+        document
+          .getElementById("btnGetInventory")
+          .addEventListener("click", () => apiCall("/inventory"));
+        document
+          .getElementById("btnGetUser")
+          .addEventListener("click", () => apiCall("/user/1"));
+        document
+          .getElementById("btnClearLog")
+          .addEventListener("click", () => (logOutput.innerHTML = ""));
+      </script>
+    </body>
+    </html>
+---
+# -----------------------------------------------------------------
+# Deployment: This runs Nginx and mounts the ConfigMap as a volume
+# -----------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deploy
+  namespace: sre-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend-nginx
+          # Use a standard, lightweight nginx image
+          image: nginx:1.25-alpine
+          ports:
+            # Nginx serves on port 80 by default
+            - containerPort: 80
+          volumeMounts:
+            # Mount our HTML file into the nginx serve directory
+            - name: html-volume
+              mountPath: /usr/share/nginx/html/index.html
+              # This 'subPath' is important!
+              # It says to only mount the 'index.html' file,
+              # not the whole ConfigMap as a directory.
+              subPath: index.html
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+      volumes:
+        - name: html-volume
+          configMap:
+            name: frontend-html-cm
+---
+# -----------------------------------------------------------------
+# Service: This exposes Nginx using a NodePort
+# -----------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+  namespace: sre-lab
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      # Internal port (the service's port)
+      port: 80
+      # Container port (what nginx is listening on)
+      targetPort: 80
+      # External port (http://<minikube-ip>:30080)
+      nodePort: 30080
