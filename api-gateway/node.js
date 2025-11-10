@@ -9,7 +9,7 @@ const { register, createMetricsMiddleware } = require('./metrics');
 
 app.use(cors());
 app.use(express.json());
-app.use(createMetricsMiddleware(register));
+app.use(createMetricsMiddleware('api-gateway'));
 
 // Define service URLs
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3001';
