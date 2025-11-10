@@ -7,7 +7,7 @@ set -x
 #    secret variable named GITHUB_TOKEN and paste your PAT value into it.
 # 3. Update the REPO_URL line to point to your repo, using the $GITHUB_TOKEN.
 
-REPO_URL="https://zakaryadev03:${GITHUB_TOKEN}@github.com/zakaryadev03/Full-stack-DevOps.git"
+REPO_URL="https://github.com/zakaryadev03/Full-stack-DevOps.git"
 MANIFEST_PATH="k8s" # The folder in your repo containing the manifests
 TMP_REPO_PATH="/tmp/temp_repo"
 
@@ -70,7 +70,7 @@ git add "$MANIFEST_FILE"
 git commit -m "CI: Update $SERVICE_NAME image to $IMAGE_NAME:$IMAGE_TAG"
 
 # Push the changes back to the repository (to the main/master branch)
-git push
+git push origin HEAD
 
 # Cleanup: remove the temporary directory
 echo "Successfully pushed manifest update. Cleaning up."
