@@ -1,0 +1,32 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+  paths:
+    include:
+      - api-gateway/*
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      inputs:
+        repository: 'zakaryab2003/fsdevopsapi'
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/api-gateway/Dockerfile'
+        buildContext: 'api-gateway/**'
+        tags: |
+          $(tag)
