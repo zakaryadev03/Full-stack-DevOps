@@ -3,20 +3,18 @@
 
 const process = require('process');
 const { NodeSDK } = require('@opentelemetry/sdk-node');
-const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
+// --- THIS IS THE CORRECT PACKAGE ---
+const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
 const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
 const { Resource } = require('@opentelemetry/resources');
 const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
 
-// 1. Configure the OTLP Exporter
-// This is the standard OTLP/HTTP exporter.
-// It will send traces to the URL specified in the
-// OTEL_EXPORTER_OTLP_ENDPOINT environment variable.
-const exporter = new OTLPTraceExporter();
+// 1. Configure the Jaeger Exporter
+// By default, this exporter will automatically read the environment variable
+// 'OTEL_EXPORTER_JAEGER_ENDPOINT' to find your Jaeger instance.
+const exporter = new JaegerExporter();
 
 // 2. Define a "Resource" for your service
-// This groups all traces under a "service.name" in Jaeger
-// We get the name from the OTEL_SERVICE_NAME environment variable.
 const resource = new Resource({
   [SemanticResourceAttributes.SERVICE_NAME]:
     process.env.OTEL_SERVICE_NAME || 'unknown_service',
@@ -25,15 +23,14 @@ const resource = new Resource({
 // 3. Initialize the NodeSDK
 const sdk = new NodeSDK({
   resource: resource,
-  traceExporter: exporter,
-  // This automatically instruments popular modules (http, express, axios, etc.)
+  traceExporter: exporter, // Use the correct JaegerExporter
   instrumentations: [getNodeAutoInstrumentations()],
 });
 
 // 4. Start the SDK
 try {
   sdk.start();
-  console.log(`OpenTelemetry tracing initialized for service: ${process.env.OTEL_SERVICE_NAME}`);
+  console.log(`OpenTelemetry (Jaeger) tracing initialized for service: ${process.env.OTEL_SERVICE_NAME}`);
 } catch (error) {
   console.error('Error initializing OpenTelemetry tracing', error);
 }

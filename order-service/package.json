@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "@opentelemetry/auto-instrumentations-node": "^0.67.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.208.0",
+    "@opentelemetry/exporter-jaeger": "^2.2.0",
     "@opentelemetry/sdk-node": "^0.208.0",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
