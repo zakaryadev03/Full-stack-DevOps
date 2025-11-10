@@ -40,6 +40,8 @@ rm -rf "$TMP_REPO_PATH"
 # We add --depth 1 for a shallow clone, which is faster for CI
 git clone --depth 1 "$REPO_URL" "$TMP_REPO_PATH"
 cd "$TMP_REPO_PATH"
+git remote set-url origin "$REPO_URL"
+
 
 # Configure Git user for this commit
 git config user.name "$GIT_USER_NAME"
