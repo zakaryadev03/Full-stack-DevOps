@@ -46,4 +46,4 @@ stages:
             scriptPath: 'Scripts/UpdateK8sManifests.sh'
             args: 'api-gateway $(imageRepository) $(tag)'
           env:
-            GITHUB_TOKEN: $(System.AccessToken)
+            GITHUB_TOKEN: $(GITHUB_TOKEN)
