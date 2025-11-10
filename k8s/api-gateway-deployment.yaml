@@ -22,7 +22,7 @@ spec:
       containers:
         - name: api-gateway
           # Make sure this is your correct image
-          image: zakaryab2003/fsdevopsapi:71
+          image: zakaryab2003/fsdevopsapi:75
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
