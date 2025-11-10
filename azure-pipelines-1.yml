@@ -39,7 +39,7 @@ stages:
     - task: Docker@2
       inputs:
         containerRegistry: 'image-registery'
-        repository: 'zakaryab2003/fsdevopsapi'
+        repository: 'zakaryab2003/fsdevopsuser'
         command: 'buildAndPush'
         Dockerfile: 'user-service/Dockerfile'
         buildContext: 'user-service/'
