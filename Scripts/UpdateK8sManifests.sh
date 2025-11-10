@@ -40,7 +40,6 @@ rm -rf "$TMP_REPO_PATH"
 # We add --depth 1 for a shallow clone, which is faster for CI
 git clone --depth 1 "$REPO_URL" "$TMP_REPO_PATH"
 cd "$TMP_REPO_PATH"
-git remote set-url origin "$REPO_URL"
 
 
 # Configure Git user for this commit
@@ -72,7 +71,7 @@ git add "$MANIFEST_FILE"
 git commit -m "CI: Update $SERVICE_NAME image to $IMAGE_NAME:$IMAGE_TAG"
 
 # Push the changes back to the repository (to the main/master branch)
-git push origin HEAD:main
+git push
 
 # Cleanup: remove the temporary directory
 echo "Successfully pushed manifest update. Cleaning up."
