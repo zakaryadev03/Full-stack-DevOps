@@ -1,0 +1,66 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+  paths:
+    include:
+      - user-service/*
+
+resources:
+- repo: self
+
+variables:
+  # This links your variable group
+  - group: 'variable group for the project pipelines'
+  # These are local variables
+  - name: tag
+    value: '$(Build.BuildId)'
+  - name: imageRepository
+    value: 'zakaryab2003/fsdevopsuser'
+  - name: dockerfilePath
+    value: 'user-service/Dockerfile'
+  - name: buildContext
+    value: 'user-service/'
+  - name: scriptPath
+    value: 'Scripts/UpdateK8sManifests.sh'
+  - name: serviceName
+    value: 'user-service'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'image-registery'
+        repository: 'zakaryab2003/fsdevopsapi'
+        command: 'buildAndPush'
+        Dockerfile: 'user-service/Dockerfile'
+        buildContext: 'user-service/'
+        tags: |
+          $(tag)
+
+- stage: Update
+  displayName: 'Update Manifest'
+  dependsOn: Build
+  jobs:
+    - job: Update
+      displayName: 'Update Manifest in Git'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: ShellScript@2
+          displayName: 'Run update-manifest.sh'
+          inputs:
+            scriptPath: '$(scriptPath)'
+            args: '$(serviceName) $(imageRepository) $(tag)'
+          env:
+            # This correctly maps the secret variable from your group
+            # to the $GITHUB_TOKEN env variable for the script.
+            GITHUB_TOKEN: $(GITHUB_TOKEN)
