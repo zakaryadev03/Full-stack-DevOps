@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: inventory-service
-          image: zakaryab2003/fsdevopsinventory:latest
+          image: zakaryab2003/fsdevopsinventory:72
           ports:
             - containerPort: 3002
           env:
