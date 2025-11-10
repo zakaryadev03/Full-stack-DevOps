@@ -11,9 +11,21 @@ resources:
 - repo: self
 
 variables:
-  group: 'variable group for the project pipelines'
-  tag: '$(Build.BuildId)'
-  imageRepository: 'zakaryab2003/fsdevopsapi'
+  # This links your variable group
+  - group: 'variable group for the project pipelines'
+  # These are local variables
+  - name: tag
+    value: '$(Build.BuildId)'
+  - name: imageRepository
+    value: 'zakaryab2003/fsdevopsapi'
+  - name: dockerfilePath
+    value: 'api-gateway/Dockerfile'
+  - name: buildContext
+    value: 'api-gateway/'
+  - name: scriptPath
+    value: 'Scripts/UpdateK8sManifests.sh'
+  - name: serviceName
+    value: 'api-gateway'
 
 stages:
 - stage: Build
@@ -39,11 +51,16 @@ stages:
   dependsOn: Build
   jobs:
     - job: Update
-      displayName: Update
+      displayName: 'Update Manifest in Git'
+      pool:
+        vmImage: ubuntu-latest
       steps:
         - task: ShellScript@2
+          displayName: 'Run update-manifest.sh'
           inputs:
-            scriptPath: 'Scripts/UpdateK8sManifests.sh'
-            args: 'api-gateway $(imageRepository) $(tag)'
+            scriptPath: '$(scriptPath)'
+            args: '$(serviceName) $(imageRepository) $(tag)'
           env:
+            # This correctly maps the secret variable from your group
+            # to the $GITHUB_TOKEN env variable for the script.
             GITHUB_TOKEN: $(GITHUB_TOKEN)
