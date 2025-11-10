@@ -11,6 +11,7 @@ resources:
 - repo: self
 
 variables:
+  group: 'variable group for the project pipelines'
   tag: '$(Build.BuildId)'
   imageRepository: 'zakaryab2003/fsdevopsapi'
 
@@ -34,7 +35,8 @@ stages:
           $(tag)
 
 - stage: Update
-  displayName: Update
+  displayName: 'Update Manifest'
+  dependsOn: Build
   jobs:
     - job: Update
       displayName: Update
@@ -43,3 +45,5 @@ stages:
           inputs:
             scriptPath: 'Scripts/UpdateK8sManifests.sh'
             args: 'api-gateway $(imageRepository) $(tag)'
+          env:
+            GITHUB_TOKEN: $(GITHUB_TOKEN)
