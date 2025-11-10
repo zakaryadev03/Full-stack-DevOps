@@ -25,8 +25,6 @@ spec:
           image: zakaryab2003/fsdevopsapi:67
           imagePullPolicy: Always
           ports:
-            # --- FIX #2 ---
-            # Update container port to match the app
             - containerPort: 8000
           env:
             - name: ORDER_SERVICE_URL
@@ -35,6 +33,10 @@ spec:
               value: "http://inventory-service-svc.sre-lab:3002"
             - name: USER_SERVICE_URL
               value: "http://user-service-svc.sre-lab:3003"
+            - name: OTEL_SERVICE_NAME
+              value: "api-gateway"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-collector.tracing.svc.cluster.local:4318/v1/traces"
           
           livenessProbe:
             httpGet:

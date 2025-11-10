@@ -26,6 +26,10 @@ spec:
             # This is how we tell the Order service how to find the Inventory service
             - name: INVENTORY_SERVICE_URL
               value: "http://inventory-service-svc.sre-lab:3002"
+            - name: OTEL_SERVICE_NAME
+              value: "order-service"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-collector.tracing.svc.cluster.local:4318/v1/traces"
           livenessProbe:
             httpGet:
               path: /healthz
