@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: zakaryab2003/fsdevopsorder:latest
+          image: zakaryab2003/fsdevopsorder:73
           ports:
             - containerPort: 3001
           env:
