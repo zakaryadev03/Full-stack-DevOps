@@ -1,5 +1,14 @@
 {
+  "name": "api-gateway",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node -r ./tracing.js node.js"
+  },
   "dependencies": {
+    "@opentelemetry/auto-instrumentations-node": "^0.67.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.208.0",
+    "@opentelemetry/sdk-node": "^0.208.0",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
