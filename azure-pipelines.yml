@@ -12,6 +12,7 @@ resources:
 
 variables:
   tag: '$(Build.BuildId)'
+  imageRepository: 'zakaryab2003/fsdevopsapi'
 
 stages:
 - stage: Build
@@ -24,9 +25,21 @@ stages:
     steps:
     - task: Docker@2
       inputs:
+        containerRegistry: 'image-registery'
         repository: 'zakaryab2003/fsdevopsapi'
         command: 'buildAndPush'
-        Dockerfile: '$(Build.SourcesDirectory)/api-gateway/Dockerfile'
-        buildContext: 'api-gateway/**'
+        Dockerfile: 'api-gateway/Dockerfile'
+        buildContext: 'api-gateway/'
         tags: |
           $(tag)
+
+- stage: Update
+  displayName: Update
+  jobs:
+    - job: Update
+      displayName: Update
+      steps:
+        - task: ShellScript@2
+          inputs:
+            scriptPath: 'Scripts/UpdateK8sManifests.sh'
+            args: 'api-gateway $(imageRepository) $(tag)'
