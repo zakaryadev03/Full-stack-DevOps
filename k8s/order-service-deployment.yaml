@@ -28,8 +28,8 @@ spec:
               value: "http://inventory-service-svc.sre-lab:3002"
             - name: OTEL_SERVICE_NAME
               value: "order-service"
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://jaeger-all-in-one.tracing.svc.cluster.local:4318/v1/traces"
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: "http://jaeger-all-in-one.tracing.svc.cluster.local:14268/api/traces"
           livenessProbe:
             httpGet:
               path: /healthz
