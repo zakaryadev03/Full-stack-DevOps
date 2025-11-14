@@ -8,9 +8,7 @@ spec:
     app: api-gateway
   ports:
     - protocol: TCP
-      port: 3000       # This is fine, this is the Service's internal port
-      # --- FIX #5 ---
-      # This MUST match the container's port
+      port: 3000
       targetPort: 8000   
       nodePort: 30007  
   type: NodePort
